@@ -1,0 +1,115 @@
+MVP Plan for Personal Study App
+
+Core Features
+
+1.  Tutor Lessons
+2.  Notes
+3.  Multiple Choice Questions (MCQs)
+4.  Flashcards
+
+Architecture
+
+-   Local LLM (Ollama / LM Studio)
+-   Local Vector DB (ChromaDB / SQLite with embeddings)
+-   UI: React + Next.js or simple local Electron app
+-   Backend: Python FastAPI or Node.js
+-   Embeddings: sentence-transformers or llama.cpp embeddings
+
+Workflows
+
+-   Input text → Embed → Store
+-   Ask question → Retrieve relevant context → LLM generate answer
+-   Create flashcards & MCQs auto from notes
+
+LLM Options for Local Use
+
+-   Llama 3 7B / 8B
+-   Mistral 7B
+-   Phi-3 (small & fast, good quality)
+-   Gemma 2B/7B
+-   Qwen 7B
+
+------------------------------------------------------------------------
+
+PRD — AI Study Assistant (Personal Use)
+
+Objective
+
+Build a personal study companion app that can convert study notes
+into: - Tutor-style explanations - MCQs - Flashcards - Searchable notes
+
+Target User
+
+Only me — personal learning companion.
+
+Feature Requirements
+
+1. Note Input
+
+-   Upload PDF / paste text
+-   Extract text
+-   Store embeddings
+
+2. AI Tutor Lessons
+
+-   Ask questions and receive contextual answers from uploaded notes
+
+3. Flashcards
+
+-   Auto-generate flashcards from notes
+-   Review mode
+
+4. MCQs
+
+-   Auto-generate practice MCQs
+-   Show correct answer + explanation
+
+5. Search
+
+-   Semantic search via vector DB
+
+Nice-to-have (later)
+
+-   Voice assistant mode
+-   Progress tracker
+-   Custom subjects & tagging
+
+Non-Functional Requirements
+
+-   Runs fully offline
+-   Fast response (<2s with quantized models)
+-   Local data privacy
+
+Tech Stack
+
+-   Frontend: Next.js / Electron
+-   Backend: FastAPI / Node
+-   Vector DB: ChromaDB / SQLite
+-   LLM: Ollama / LM Studio
+-   Embeddings: sentence-transformers
+-   Local inference: llama.cpp
+
+Milestones
+
+Week 1
+
+-   Setup local LLM + embeddings DB
+-   Build note input pipeline
+-   Implement retrieval & Q&A
+
+Week 2
+
+-   Flashcard generation + UI
+-   MCQ generation + UI
+
+Week 3
+
+-   Polish UI
+-   Add local save & load
+
+------------------------------------------------------------------------
+
+Final Notes
+
+Yes — everything can be done locally using: - Ollama - ChromaDB -
+Next.js + FastAPI
