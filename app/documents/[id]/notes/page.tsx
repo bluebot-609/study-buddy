@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
@@ -19,12 +19,7 @@ export default function NotesPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
 
-  useEffect(() => {
-    fetchNotes();
-    fetchUserNotes();
-  }, [documentId]);
-
-  const fetchNotes = async () => {
+  const fetchNotes = useCallback(async () => {
     try {
       const response = await fetch(`/api/documents/${documentId}/notes`);
       if (response.status === 404) {
@@ -41,9 +36,9 @@ export default function NotesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [documentId]);
 
-  const fetchUserNotes = async () => {
+  const fetchUserNotes = useCallback(async () => {
     try {
       const response = await fetch(`/api/documents/${documentId}/user-notes`);
       if (!response.ok) {
@@ -55,7 +50,12 @@ export default function NotesPage() {
     } catch (err) {
       console.error('Error fetching user notes:', err);
     }
-  };
+  }, [documentId]);
+
+  useEffect(() => {
+    fetchNotes();
+    fetchUserNotes();
+  }, [fetchNotes, fetchUserNotes]);
 
   const handleGenerate = async () => {
     if (!confirm('Generate concise summary notes from this document?')) return;
@@ -429,39 +429,39 @@ export default function NotesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-8 bg-gray-900">
+      <div className="min-h-screen p-8 bg-background">
         <div className="max-w-4xl mx-auto">
-          <p className="text-gray-100">Loading notes...</p>
+          <p className="text-muted-foreground">Loading notes...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-8 bg-gray-900">
+    <div className="min-h-screen p-8 bg-background">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6 flex items-center gap-4">
           <Link 
             href={`/documents/${documentId}`} 
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
           >
             ← Back to Document
           </Link>
           <Link
             href="/documents"
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
           >
             All Documents
           </Link>
         </div>
 
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-100">Notes</h1>
+          <h1 className="text-4xl font-bold text-foreground">Notes</h1>
           <div className="flex gap-3">
             {userNotes.length > 0 && (
               <button
                 onClick={handleExportPDF}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                className="px-6 py-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors font-medium"
               >
                 📄 Export All Notes as PDF
               </button>
@@ -470,7 +470,7 @@ export default function NotesPage() {
               <button
                 onClick={handleGenerate}
                 disabled={generating}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors font-medium"
+                className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors font-medium"
               >
                 {generating ? 'Generating...' : 'Generate Summary Notes'}
               </button>
@@ -481,44 +481,44 @@ export default function NotesPage() {
         <div className="space-y-12">
           {/* AI-Generated Summary Notes Section */}
           <div>
-            <h2 className="text-2xl font-bold text-gray-100 mb-4">AI-Generated Summary Notes</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-4">AI-Generated Summary Notes</h2>
             {!note ? (
-              <div className="text-center py-12 bg-gray-800 border border-gray-700 rounded-lg">
-                <p className="text-gray-300 mb-4">No summary notes generated yet.</p>
+              <div className="text-center py-12 bg-card border border-border rounded-xl">
+                <p className="text-muted-foreground mb-4">No summary notes generated yet.</p>
                 <button
                   onClick={handleGenerate}
                   disabled={generating}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors font-medium"
+                  className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors font-medium"
                 >
                   {generating ? 'Generating concise notes...' : 'Generate Summary Notes'}
                 </button>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                <div className="bg-card border border-border rounded-xl p-6">
                   <div className="prose prose-invert max-w-none">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
-                        h1: ({children, ...props}) => <h1 className="text-2xl font-bold mt-6 mb-3 text-gray-100" {...props}>{children}</h1>,
-                        h2: ({children, ...props}) => <h2 className="text-xl font-bold mt-5 mb-2 text-gray-100" {...props}>{children}</h2>,
-                        h3: ({children, ...props}) => <h3 className="text-lg font-bold mt-4 mb-2 text-gray-100" {...props}>{children}</h3>,
-                        p: ({children, ...props}) => <p className="mb-3 leading-relaxed text-gray-200" {...props}>{children}</p>,
-                        ul: ({children, ...props}) => <ul className="list-disc list-inside mb-3 space-y-1 ml-4 text-gray-200" {...props}>{children}</ul>,
-                        ol: ({children, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-1 ml-4 text-gray-200" {...props}>{children}</ol>,
-                        li: ({children, ...props}) => <li className="mb-1 text-gray-200" {...props}>{children}</li>,
+                        h1: ({children, ...props}) => <h1 className="text-2xl font-bold mt-6 mb-3 text-foreground" {...props}>{children}</h1>,
+                        h2: ({children, ...props}) => <h2 className="text-xl font-bold mt-5 mb-2 text-foreground" {...props}>{children}</h2>,
+                        h3: ({children, ...props}) => <h3 className="text-lg font-bold mt-4 mb-2 text-foreground" {...props}>{children}</h3>,
+                        p: ({children, ...props}) => <p className="mb-3 leading-relaxed text-foreground" {...props}>{children}</p>,
+                        ul: ({children, ...props}) => <ul className="list-disc list-inside mb-3 space-y-1 ml-4 text-foreground" {...props}>{children}</ul>,
+                        ol: ({children, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-1 ml-4 text-foreground" {...props}>{children}</ol>,
+                        li: ({children, ...props}) => <li className="mb-1 text-foreground" {...props}>{children}</li>,
                         code: ({inline, children, className, ...props}: any) => 
                           inline ? (
-                            <code className="bg-gray-700 px-1.5 py-0.5 rounded text-sm font-mono text-gray-100" {...props}>{children}</code>
+                            <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground" {...props}>{children}</code>
                           ) : (
-                            <code className="block bg-gray-700 p-3 rounded overflow-x-auto text-sm font-mono text-gray-100 mb-3" {...props}>{children}</code>
+                            <code className="block bg-muted p-3 rounded overflow-x-auto text-sm font-mono text-foreground mb-3" {...props}>{children}</code>
                           ),
-                        pre: ({children, ...props}) => <pre className="bg-gray-700 p-3 rounded overflow-x-auto mb-3" {...props}>{children}</pre>,
-                        blockquote: ({children, ...props}) => <blockquote className="border-l-4 border-blue-500 pl-4 italic my-3 text-gray-300" {...props}>{children}</blockquote>,
-                        strong: ({children, ...props}) => <strong className="font-bold text-gray-100" {...props}>{children}</strong>,
+                        pre: ({children, ...props}) => <pre className="bg-muted p-3 rounded overflow-x-auto mb-3" {...props}>{children}</pre>,
+                        blockquote: ({children, ...props}) => <blockquote className="border-l-4 border-primary pl-4 italic my-3 text-muted-foreground" {...props}>{children}</blockquote>,
+                        strong: ({children, ...props}) => <strong className="font-bold text-foreground" {...props}>{children}</strong>,
                         em: ({children, ...props}) => <em className="italic" {...props}>{children}</em>,
-                        a: ({children, href, ...props}) => <a href={href} className="text-blue-400 hover:text-blue-300 hover:underline" target="_blank" rel="noopener noreferrer" {...props}>{children}</a>,
-                        hr: ({...props}) => <hr className="my-4 border-gray-600" {...props} />,
+                        a: ({children, href, ...props}) => <a href={href} className="text-primary hover:text-primary/80 hover:underline" target="_blank" rel="noopener noreferrer" {...props}>{children}</a>,
+                        hr: ({...props}) => <hr className="my-4 border-border" {...props} />,
                       }}
                     >
                       {note.content}
@@ -527,13 +527,13 @@ export default function NotesPage() {
                 </div>
 
                 <div className="flex justify-end items-center gap-4">
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-muted-foreground">
                     Last updated: {new Date(note.updated_at).toLocaleString()}
                   </div>
                   <button
                     onClick={handleGenerate}
                     disabled={generating}
-                    className="px-6 py-3 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 disabled:bg-gray-400 transition-colors font-medium"
+                    className="px-6 py-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 disabled:opacity-50 transition-colors font-medium border border-border"
                   >
                     {generating ? 'Regenerating...' : 'Regenerate Notes'}
                   </button>
@@ -544,41 +544,41 @@ export default function NotesPage() {
 
           {/* User Notes Section */}
           <div>
-            <h2 className="text-2xl font-bold text-gray-100 mb-4">Your Notes</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Your Notes</h2>
             {userNotes.length === 0 ? (
-              <div className="text-center py-12 bg-gray-800 border border-gray-700 rounded-lg">
-                <p className="text-gray-300">No user notes yet. Select text in chat to add notes!</p>
+              <div className="text-center py-12 bg-card border border-border rounded-xl">
+                <p className="text-muted-foreground">No user notes yet. Select text in chat to add notes!</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {userNotes.map((userNote) => (
-                  <div key={userNote.id} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  <div key={userNote.id} className="bg-card border border-border rounded-xl p-6">
                     {editingNoteId === userNote.id ? (
                       <div className="space-y-4">
                         <input
                           type="text"
                           value={editTitle}
                           onChange={(e) => setEditTitle(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-100 placeholder-gray-400"
+                          className="w-full px-3 py-2 bg-background border border-input rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all"
                           placeholder="Note title"
                         />
                         <textarea
                           value={editContent}
                           onChange={(e) => setEditContent(e.target.value)}
                           rows={6}
-                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-100 placeholder-gray-400"
+                          className="w-full px-3 py-2 bg-background border border-input rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all resize-none"
                           placeholder="Note content"
                         />
                         <div className="flex gap-2 justify-end">
                           <button
                             onClick={handleCancelEdit}
-                            className="px-6 py-3 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                            className="px-6 py-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors font-medium border border-border"
                           >
                             Cancel
                           </button>
                           <button
                             onClick={() => handleSaveEdit(userNote.id)}
-                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
                           >
                             Save
                           </button>
@@ -587,17 +587,17 @@ export default function NotesPage() {
                     ) : (
                       <div className="space-y-3">
                         <div className="flex justify-between items-start">
-                          <h3 className="text-lg font-semibold text-gray-100">{userNote.title}</h3>
+                          <h3 className="text-lg font-semibold text-foreground">{userNote.title}</h3>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEditNote(userNote)}
-                              className="px-4 py-2 text-sm bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                              className="px-4 py-2 text-sm bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors font-medium border border-border"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleDeleteNote(userNote.id)}
-                              className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                              className="px-4 py-2 text-sm bg-destructive/10 text-destructive border border-destructive/20 rounded-lg hover:bg-destructive/20 transition-colors font-medium"
                             >
                               Delete
                             </button>
@@ -607,34 +607,34 @@ export default function NotesPage() {
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{
-                              h1: ({children, ...props}) => <h1 className="text-2xl font-bold mt-6 mb-3 text-gray-100" {...props}>{children}</h1>,
-                              h2: ({children, ...props}) => <h2 className="text-xl font-bold mt-5 mb-2 text-gray-100" {...props}>{children}</h2>,
-                              h3: ({children, ...props}) => <h3 className="text-lg font-bold mt-4 mb-2 text-gray-100" {...props}>{children}</h3>,
-                              p: ({children, ...props}) => <p className="mb-3 leading-relaxed text-gray-200" {...props}>{children}</p>,
-                              ul: ({children, ...props}) => <ul className="list-disc list-inside mb-3 space-y-1 ml-4 text-gray-200" {...props}>{children}</ul>,
-                              ol: ({children, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-1 ml-4 text-gray-200" {...props}>{children}</ol>,
-                              li: ({children, ...props}) => <li className="mb-1 text-gray-200" {...props}>{children}</li>,
+                              h1: ({children, ...props}) => <h1 className="text-2xl font-bold mt-6 mb-3 text-foreground" {...props}>{children}</h1>,
+                              h2: ({children, ...props}) => <h2 className="text-xl font-bold mt-5 mb-2 text-foreground" {...props}>{children}</h2>,
+                              h3: ({children, ...props}) => <h3 className="text-lg font-bold mt-4 mb-2 text-foreground" {...props}>{children}</h3>,
+                              p: ({children, ...props}) => <p className="mb-3 leading-relaxed text-foreground" {...props}>{children}</p>,
+                              ul: ({children, ...props}) => <ul className="list-disc list-inside mb-3 space-y-1 ml-4 text-foreground" {...props}>{children}</ul>,
+                              ol: ({children, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-1 ml-4 text-foreground" {...props}>{children}</ol>,
+                              li: ({children, ...props}) => <li className="mb-1 text-foreground" {...props}>{children}</li>,
                               code: ({inline, children, className, ...props}: any) => 
                                 inline ? (
-                                  <code className="bg-gray-700 px-1.5 py-0.5 rounded text-sm font-mono text-gray-100" {...props}>{children}</code>
+                                  <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground" {...props}>{children}</code>
                                 ) : (
-                                  <code className="block bg-gray-700 p-3 rounded overflow-x-auto text-sm font-mono text-gray-100 mb-3" {...props}>{children}</code>
+                                  <code className="block bg-muted p-3 rounded overflow-x-auto text-sm font-mono text-foreground mb-3" {...props}>{children}</code>
                                 ),
-                              pre: ({children, ...props}) => <pre className="bg-gray-700 p-3 rounded overflow-x-auto mb-3" {...props}>{children}</pre>,
-                              blockquote: ({children, ...props}) => <blockquote className="border-l-4 border-blue-500 pl-4 italic my-3 text-gray-300" {...props}>{children}</blockquote>,
-                              strong: ({children, ...props}) => <strong className="font-bold text-gray-100" {...props}>{children}</strong>,
+                              pre: ({children, ...props}) => <pre className="bg-muted p-3 rounded overflow-x-auto mb-3" {...props}>{children}</pre>,
+                              blockquote: ({children, ...props}) => <blockquote className="border-l-4 border-primary pl-4 italic my-3 text-muted-foreground" {...props}>{children}</blockquote>,
+                              strong: ({children, ...props}) => <strong className="font-bold text-foreground" {...props}>{children}</strong>,
                               em: ({children, ...props}) => <em className="italic" {...props}>{children}</em>,
-                              a: ({children, href, ...props}) => <a href={href} className="text-blue-400 hover:text-blue-300 hover:underline" target="_blank" rel="noopener noreferrer" {...props}>{children}</a>,
-                              hr: ({...props}) => <hr className="my-4 border-gray-600" {...props} />,
-                              table: ({children, ...props}) => <div className="overflow-x-auto mb-3"><table className="min-w-full border-collapse border border-gray-600" {...props}>{children}</table></div>,
-                              th: ({children, ...props}) => <th className="border border-gray-600 px-4 py-2 bg-gray-700 font-bold text-left text-gray-100" {...props}>{children}</th>,
-                              td: ({children, ...props}) => <td className="border border-gray-600 px-4 py-2 text-gray-200" {...props}>{children}</td>,
+                              a: ({children, href, ...props}) => <a href={href} className="text-primary hover:text-primary/80 hover:underline" target="_blank" rel="noopener noreferrer" {...props}>{children}</a>,
+                              hr: ({...props}) => <hr className="my-4 border-border" {...props} />,
+                              table: ({children, ...props}) => <div className="overflow-x-auto mb-3"><table className="min-w-full border-collapse border border-border" {...props}>{children}</table></div>,
+                              th: ({children, ...props}) => <th className="border border-border px-4 py-2 bg-muted font-bold text-left text-foreground" {...props}>{children}</th>,
+                              td: ({children, ...props}) => <td className="border border-border px-4 py-2 text-foreground" {...props}>{children}</td>,
                             }}
                           >
                             {userNote.content}
                           </ReactMarkdown>
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-muted-foreground">
                           Created: {new Date(userNote.created_at).toLocaleString()}
                         </div>
                       </div>

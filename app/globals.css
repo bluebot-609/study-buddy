@@ -2,8 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-gray-900 text-gray-100;
+@layer base {
+  :root {
+    /* Light Theme */
+    --background: 210 20% 97%; /* #F8F9FA */
+    --foreground: 0 0% 16%; /* #2A2A2A */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 0 0% 16%; /* #2A2A2A */
+    --popover: 0 0% 100%; /* #FFFFFF */
+    --popover-foreground: 0 0% 16%; /* #2A2A2A */
+    --primary: 203 48% 43%; /* #3A7CA5 */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
+    --secondary: 195 52% 66%; /* #81C3D7 */
+    --secondary-foreground: 0 0% 16%; /* #2A2A2A */
+    --muted: 210 20% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 35 87% 60%; /* #F2A541 */
+    --accent-foreground: 0 0% 16%; /* #2A2A2A */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 20% 90%;
+    --input: 210 20% 90%;
+    --ring: 203 48% 43%; /* Primary color for focus rings */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark Theme */
+    --background: 0 0% 12%; /* #1E1E1E */
+    --foreground: 0 0% 96%; /* #F5F5F5 */
+    --card: 0 0% 14%; /* #242424 */
+    --card-foreground: 0 0% 96%; /* #F5F5F5 */
+    --popover: 0 0% 14%; /* #242424 */
+    --popover-foreground: 0 0% 96%; /* #F5F5F5 */
+    --primary: 201 58% 64%; /* #6FB4D6 */
+    --primary-foreground: 0 0% 12%; /* Dark text on primary */
+    --secondary: 195 52% 78%; /* #A6D9E7 */
+    --secondary-foreground: 0 0% 12%; /* Dark text on secondary */
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 38 100% 70%; /* #FFC766 */
+    --accent-foreground: 0 0% 12%; /* Dark text on accent */
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 201 58% 64%; /* Primary color for focus rings */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 /* Syntax highlighting for code blocks - dark theme */
